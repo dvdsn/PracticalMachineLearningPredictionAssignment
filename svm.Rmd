@@ -1,0 +1,59 @@
+---
+title: "SVM Analysis of Activity Logs"
+author: Doug Davidson
+date: June 10, 2018
+output: 
+  html_document:
+  keep_md: true
+---
+
+```{r setup}
+# Library setup
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(caret)
+library("e1071")
+```
+
+### Synopsis
+
+After I tried (and failed) the quiz for the project, I tried an svm analysis, and the prediction worked perfectly.
+
+```{r analysis}
+### Analysis 
+
+# Set up
+set.seed(666)
+
+# Data read-in
+dat <- read.csv("pml-training.csv", na.strings = c("NA", ""))
+tst <- read.csv("pml-testing.csv", na.strings = c("NA", ""))
+
+# Eliminate columns that are mostly NA
+dat <- dat[, -which(colMeans(is.na(dat)) > 0.75)]
+tst <- tst[, -which(colMeans(is.na(tst)) > 0.75)]
+
+# Exclude some columns, but keep subject ID and time-stamp variables
+dat <- dat[,c(10:60)]
+tst <- tst[,c(10:60)]
+
+# Dimensions
+dim(dat)
+dim(tst)
+
+# Set up partitions
+inTrain = createDataPartition(dat$classe, p = 3/4)[[1]]
+training = dat[ inTrain,]
+testing = dat[-inTrain,]
+
+### Model fit with svm
+set.seed(6666)
+
+fit <- e1071::svm(classe ~ .,data=training)
+p <- predict(fit,newdata = testing)
+
+### Predictions for tst set
+p2 <- predict(fit, newdata=tst)
+
+print(p2)
+```
